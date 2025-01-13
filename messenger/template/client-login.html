@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login & Sign-Up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        .login-container, .signup-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        h2 {
+            text-align: center;
+        }
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            display: none;
+        }
+        .toggle-link {
+            text-align: center;
+            margin-top: 10px;
+        }
+        .toggle-link a {
+            color: #007bff;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .toggle-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container" id="login-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="text" id="nickname" class="form-input" placeholder="Nickname" required>
+            <input type="password" id="password" class="form-input" placeholder="Password" required>
+            <button type="submit" class="btn">Login</button>
+        </form>
+        <div id="error-message" class="error">Invalid nickname or password</div>
+        <div class="toggle-link">
+            <span>Don't have an account? <a onclick="toggleForms()">Sign Up</a></span>
+        </div>
+    </div>
+
+    <div class="signup-container" id="signup-container">
+        <h2>Sign Up</h2>
+        <form id="signup-form">
+            <input type="text" id="new-nickname" class="form-input" placeholder="Nickname" required>
+            <input type="password" id="new-password" class="form-input" placeholder="Password" required>
+            <input type="password" id="repeat-password" class="form-input" placeholder="Repeat Password" required>
+            <button type="submit" class="btn">Sign Up</button>
+        </form>
+        <div id="signup-error-message" class="error">Passwords do not match</div>
+        <div class="toggle-link">
+            <span>Already have an account? <a onclick="toggleForms()">Login</a></span>
+        </div>
+    </div>
+
+    <script>
+        const path = "{{.Path}}/client/";
+
+        const loginContainer = document.getElementById("login-container");
+        const signupContainer = document.getElementById("signup-container");
+        const errorMessage = document.getElementById("error-message");
+        const signupErrorMessage = document.getElementById("signup-error-message");
+
+        loginContainer.style.display = "block";
+
+        function toggleForms() {
+            if (loginContainer.style.display === "none") {
+                loginContainer.style.display = "block";
+                signupContainer.style.display = "none";
+            } else {
+                loginContainer.style.display = "none";
+                signupContainer.style.display = "block";
+            }
+        }
+
+        const loginForm = document.getElementById("login-form");
+        loginForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const nickname = document.getElementById("nickname").value;
+            const password = document.getElementById("password").value;
+
+            const loginData = {
+                "nickname": nickname,
+                "password": password,
+            };
+
+            try {
+                const response = await fetch("http://" + path + "login/check", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(loginData),
+                });
+
+                if (response.ok) {
+                    window.location.href = "http://" + path + "chat";
+                } else {
+                    errorMessage.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error during login:", error);
+                errorMessage.style.display = "block";
+            }
+        });
+
+        const signupForm = document.getElementById("signup-form");
+        signupForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const newNickname = document.getElementById("new-nickname").value;
+            const newPassword = document.getElementById("new-password").value;
+            const repeatPassword = document.getElementById("repeat-password").value;
+
+            if (newPassword !== repeatPassword) {
+                signupErrorMessage.style.display = "block";
+                return;
+            }
+
+            const signupData = {
+                "nickname": newNickname,
+                "password": newPassword,
+            };
+
+            try {
+                const response = await fetch("http://" + path + "sign-up", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(signupData),
+                });
+
+                if (response.ok) {
+                    alert("Sign up successful! Please log in.");
+                    toggleForms();
+                } else {
+                    signupErrorMessage.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error during sign-up:", error);
+                signupErrorMessage.style.display = "block";
+            }
+        });
+    </script>
+</body>
+</html>

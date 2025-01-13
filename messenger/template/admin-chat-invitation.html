@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Chat Invitations</title>
+</head>
+<body>
+
+<div class="container">
+    <button onclick="window.location.href='/admin/user'">
+        User
+    </button>
+    <button onclick="window.location.href='/admin/friendship'">
+        Friendship
+    </button>
+    <button onclick="window.location.href='/admin/friendship-invitation'">
+        Friendship Invitation
+    </button>
+    <button onclick="window.location.href='/admin/chat'">
+        Chat
+    </button>
+    <button onclick="window.location.href='/admin/chat-membership'">
+        Chat Membership
+    </button>
+    <button onclick="window.location.href='/admin/chat-invitation'">
+        Chat Invitation
+    </button>
+    <button onclick="window.location.href='/admin/message'">
+        Message
+    </button>
+    
+    <h1>Admin Panel - Chat Invitation Management</h1>
+
+    <form id="newChatInvitationForm">
+        <label for="chatId">Chat Id:</label>
+        <input type="text" id="chatId" name="chat_id" required><br><br>
+
+        <label for="userId">User Id:</label>
+        <input type="text" id="userId" name="user_id" required><br><br>
+
+        <button type="button" id="createNewChatInvitation">Create Chat Invitation</button>
+    </form>
+
+    <table class="chat-invitation-table">
+        <thead>
+        <tr>
+            <th>Chat Id</th>
+            <th>User Id</th>
+            <th>Delete Chat Invitation</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .ChatInvitations}}
+        <tr>
+            <td>{{.ChatId}}</td>
+            <td>{{.UserId}}</td>
+            <td class="delete">
+                <button onclick="deleteChatInvitation(merge({{.ChatId}},{{.UserId}}))">Delete</button>
+            </td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+</div>
+
+
+<script>
+    function merge(id1, id2) {
+        return `${id1}-${id2}`
+    }
+    
+    function getFormDataAsJSON(formId) {
+        const form = document.getElementById(formId);
+        if (!form) {
+            console.error(`Form with ID "${formId}" not found.`);
+            return null;
+        }
+
+        const formData = new FormData(form);
+        const formJSON = {};
+
+        formData.forEach((value, key) => {
+            formJSON[key] = parseInt(value);
+        });
+
+        document.getElementById(formId).reset();
+
+        return formJSON;
+    }
+
+    function sendJSON(endpoint, json) {
+        fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(json)
+        })
+        .then(response => {            
+            if (response.ok) {
+                alert("JSON sent successfully!");
+                location.reload()
+            } else {
+                return response.json().then(data => {
+                    alert("Error: " + (data["error"] || "server troubles"));
+                });
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred while sending json.");
+        });
+    }
+
+    document.getElementById("createNewChatInvitation").addEventListener("click", function(event) {
+        event.preventDefault();
+        
+        const json = getFormDataAsJSON("newChatInvitationForm");
+        
+        sendJSON("/admin/chat-invitation/create", json);
+    });
+
+    function deleteChatInvitation(ids) {
+        if (confirm(`Are you sure you want to delete chat invitation ${ids}?`)) {
+            fetch(`/admin/chat-invitation/delete/${ids}`, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`Chat invitation ${ids} deleted successfully`);
+                    location.reload();
+                } else {
+                    alert(`Failed to delete chat invitation ${ids}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(`An error occurred while deleting chat invitation ${ids}`);
+            });
+        }
+    }
+</script>
+
+</body>
+</html>

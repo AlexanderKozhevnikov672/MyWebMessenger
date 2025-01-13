@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Page</title>
+    <style>
+        body, h2, ul, li, button {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding-top: 20px;
+        }
+
+        .button-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .button-container button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .button-container button:hover {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+
+        .button-container button:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.8);
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            background-color: #ff5c5c;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .logout-btn:hover {
+            background-color: #e04e4e;
+            transform: scale(1.05);
+        }
+
+        .logout-btn:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(255, 92, 92, 0.8);
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 80px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .section {
+            padding: 20px;
+            border-radius: 8px;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .friend-list, .invitation-list, .chat-invite-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .friend-item, .invitation-item, .chat-invite-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .friend-item button {
+            padding: 8px 16px;
+            background-color: #ff5c5c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .friend-item button:hover {
+            background-color: #e04e4e;
+        }
+
+        .invitation-item button, .chat-invite-item button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .invitation-item button.approve, .chat-invite-item button.accept {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .invitation-item button.decline, .chat-invite-item button.reject {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .invitation-item button.approve:hover, .chat-invite-item button.accept:hover {
+            background-color: #45a049;
+        }
+
+        .invitation-item button.decline:hover, .chat-invite-item button.reject:hover {
+            background-color: #e53935;
+        }
+
+        .invitation-item button:focus, .chat-invite-item button:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.8);
+        }
+
+        .invite-form-container {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .invite-form {
+            display: inline-block;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .invite-form input {
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .invite-form button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .invite-form button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <button class="logout-btn" onclick="logout()">Logout</button>
+
+    <div class="button-container">
+        <button onclick="window.location.href='/client/profile'">Profile</button>
+        <button onclick="window.location.href='/client/chat'">Chats</button>
+    </div>
+
+    <div class="container">
+
+        <div class="invite-form-container">
+            <div class="invite-form">
+                <h2>Send Friendship Invitation</h2>
+                <form id="friend-invite-form">
+                    <input type="text" id="friend-nickname" placeholder="Enter friend's nickname" required>
+                    <button type="submit">Send Invitation</button>
+                </form>
+                <div id="invite-error-message" class="error" style="color: red; display: none;">Failed to send invitation</div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+
+            <div class="section">
+                <h2>Your Friends</h2>
+                <ul id="friend-list" class="friend-list">
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>Friendship Invitations</h2>
+                <ul id="invitation-list" class="invitation-list">
+                </ul>
+            </div>
+
+            <div class="section">
+                <h2>Chat Invitations</h2>
+                <ul id="chat-invite-list" class="chat-invite-list">
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        const path = "{{.Path}}/client/";
+
+        async function logout() {
+            try {
+                const response = await fetch("http://"+ path + "logout", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                console.log(response.ok);
+                if (response.ok) {
+                    console.log("success logout");
+                    window.location.href = "http://" + path + "login";
+                } else {
+                    console.error("Error during logout:", error);
+                }
+            } catch (error) {
+                console.error("Error during logout:", error);
+            }
+        }
+
+        async function sendFriendshipInvitation(event) {
+            event.preventDefault();
+
+            const nickname = document.getElementById("friend-nickname").value;
+            const inviteData = { "nickname": nickname };
+
+            try {
+                const response = await fetch("http://" + path + "management/friend-invitation/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(inviteData),
+                });
+
+                const inviteErrorMessage = document.getElementById("invite-error-message");
+
+                if (response.ok) {
+                    alert("Friendship invitation sent!");
+                    document.getElementById("friend-nickname").value = "";
+                    inviteErrorMessage.style.display = "none";
+                } else {
+                    inviteErrorMessage.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error sending invitation:", error);
+                const inviteErrorMessage = document.getElementById("invite-error-message");
+                inviteErrorMessage.style.display = "block";
+            }
+        }
+
+        const inviteForm = document.getElementById("friend-invite-form");
+        inviteForm.addEventListener("submit", sendFriendshipInvitation);
+
+        async function loadFriends() {
+            const friends = [
+                {{range .Friends}}
+                    {id: {{.Id}}, nickname: {{.Nickname}}},
+                {{end}}
+            ];
+            const friendList = document.getElementById("friend-list");
+
+            friends.forEach(friend => {
+                const li = document.createElement("li");
+                li.classList.add("friend-item");
+                li.innerHTML = `${friend.nickname} <button onclick="removeFriend(${friend.id})">Remove</button>`;
+                friendList.appendChild(li);
+            });
+        }
+
+        async function loadFriendInvitations() {
+            const invitations = [
+                {{range .FriendInvitations}}
+                    {id: {{.Id}}, nickname: {{.Nickname}}},
+                {{end}}
+            ];
+            const invitationList = document.getElementById("invitation-list");
+
+            invitations.forEach(invite => {
+                const li = document.createElement("li");
+                li.classList.add("invitation-item");
+                li.innerHTML = `${invite.nickname} 
+                    <button class="approve" onclick="approveInvitation(${invite.id})">Approve</button>
+                    <button class="decline" onclick="declineInvitation(${invite.id})">Decline</button>`;
+                invitationList.appendChild(li);
+            });
+        }
+
+        async function loadChatInvitations() {
+            const chats = [
+                {{range .ChatsInvitations}}
+                    {id: {{.Id}}, name: {{.Name}}},
+                {{end}}
+            ];
+            const chatInviteList = document.getElementById("chat-invite-list");
+
+            chats.forEach(chat => {
+                const li = document.createElement("li");
+                li.classList.add("chat-invite-item");
+                li.innerHTML = `${chat.name} 
+                    <button class="accept" onclick="acceptChatInvite(${chat.id})">Accept</button>
+                    <button class="reject" onclick="rejectChatInvite(${chat.id})">Reject</button>`;
+                chatInviteList.appendChild(li);
+            });
+        }
+
+        async function removeFriend(friendId) {
+            const response = await fetch("http://" + path + `management/friend/remove/${friendId}`, {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                alert("Friend removed");
+                location.reload();
+            } else {
+                alert("Failed to remove friend");
+            }
+        }
+
+        async function approveInvitation(inviteId) {
+            const response = await fetch("http://" + path + `management/friend-invitation/approve/${inviteId}`, {
+                method: "POST",
+            });
+            if (response.ok) {
+                alert("Invitation approved");
+                location.reload();
+            } else {
+                alert("Failed to approve invitation");
+            }
+        }
+
+        async function declineInvitation(inviteId) {
+            const response = await fetch("http://" + path + `management/friend-invitation/decline/${inviteId}`, {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                alert("Invitation declined");
+                location.reload();
+            } else {
+                alert("Failed to decline invitation");
+            }
+        }
+
+        async function acceptChatInvite(chatId) {
+            const response = await fetch("http://" + path + `management/chat-invitation/accept/${chatId}`, {
+                method: "POST",
+            });
+            if (response.ok) {
+                alert("Chat invite accepted!");
+                location.reload();
+            } else {
+                alert("Failed to accept chat invite");
+            }
+        }
+
+        async function rejectChatInvite(chatId) {
+            const response = await fetch("http://" + path + `management/chat-invitation/reject/${chatId}`, {
+                method: "DELETE",
+            });
+            if (response.ok) {
+                alert("Chat invite rejected");
+                location.reload();
+            } else {
+                alert("Failed to reject chat invite");
+            }
+        }
+
+        loadFriends();
+        loadFriendInvitations();
+        loadChatInvitations();
+    </script>
+
+</body>
+</html>

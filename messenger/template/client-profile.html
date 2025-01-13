@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f4f4f9;
+        }
+
+        .profile-container {
+            width: 80%;
+            max-width: 800px;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .logout-btn {
+            padding: 12px 20px;
+            background-color: #ff5c5c;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .logout-btn:hover {
+            background-color: #e04e4e;
+            transform: scale(1.05);
+        }
+
+        .logout-btn:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(255, 92, 92, 0.8);
+        }
+
+        .button-container {
+            margin-top: 80px;
+        }
+
+        .button-container button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .button-container button:hover {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+
+        .button-container button:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.8);
+        }
+
+        .profile-info {
+            margin-bottom: 30px;
+        }
+
+        .profile-info h3 {
+            margin-bottom: 10px;
+        }
+
+        .profile-info p {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+
+        .password-change-form {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .password-change-form input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .password-change-form button {
+            width: 100%;
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .password-change-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="profile-container">
+
+        <div class="button-container">
+            <button class="ref-btn" onclick="goToPage('http://' + path + 'chat')">Chats</button>
+            <button class="ref-btn" onclick="goToPage('http://' + path + 'management')">Management</button>
+        </div>
+
+        <div class="profile-info">
+            <h3>Profile Information</h3>
+            <p><strong>Nickname:</strong> <span id="nickname">{{.Nickname}}</span></p>
+            <p><strong>Friends:</strong> <span id="friends-count">{{.FriendCount}}</span></p>
+            <p><strong>Chats:</strong> <span id="chats-count">{{.ChatCount}}</span></p>
+        </div>
+
+        <div class="password-change-form">
+            <h3>Change Password</h3>
+            <form id="password-form">
+                <input type="password" id="old-password" placeholder="Old Password" required>
+                <input type="password" id="new-password" placeholder="New Password" required>
+                <input type="password" id="repeat-password" placeholder="Repeat New Password" required>
+                <button type="submit">Change Password</button>
+            </form>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Logout</button>
+
+    </div>
+
+    <script>
+        const path = "{{.Path}}/client/";
+
+        function goToPage(url) {
+            window.location.href = url;
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch("http://" + path + "logout", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                console.log(response.ok);
+                if (response.ok) {
+                    console.log("success logout");
+                    
+                    window.location.href = "http://" + path + "login";
+                } else {
+                    console.error("Error during logout:", error);
+                }
+            } catch (error) {
+                console.error("Error during logout:", error);
+            }
+        }
+
+        document.getElementById("password-form").addEventListener("submit", async function(event) {
+            event.preventDefault();
+            const oldPassword = document.getElementById("old-password").value;
+            const newPassword = document.getElementById("new-password").value;
+            const repeatPassword = document.getElementById("repeat-password").value;
+
+            if (newPassword !== repeatPassword) {
+                alert("New passwords do not match!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://"+ path + "profile/change-password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        old_password: oldPassword,
+                        new_password: newPassword
+                    }),
+                });
+
+                if (response.ok) {
+                    alert("Password changed successfully!");
+                    document.getElementById("password-form").reset();
+                } else {
+                    alert("Failed to change password.");
+                }
+            } catch (error) {
+                console.error("Error during password change:", error);
+            }
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chats</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            padding: 20px;
+        }
+        html, body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .fullscreen-container {
+            height: 90vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+        .chat-list {
+            width: 250px;
+            background-color: #fff;
+            padding: 10px;
+            border-right: 2px solid #ccc;
+            overflow-y: auto;
+        }
+        .chat-item {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .chat-item:hover {
+            background-color: #efefef;
+        }
+        .messages-container {
+            flex-grow: 1;
+            padding: 20px;
+            background-color: #fff;
+        }
+        .messages {
+            height: 80%;
+            overflow-y: scroll;
+            margin-bottom: 20px;
+        }
+        .message {
+            padding: 8px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .message.sent {
+            background-color: #dcf8c6;
+            text-align: right;
+        }
+        .message.received {
+            background-color: #f1f1f1;
+            text-align: left;
+        }
+        .message-input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        .logout-btn {
+            padding: 12px 20px;
+            background-color: #ff5c5c;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+            top: 20px;
+            right: 20px;
+        }
+
+        .logout-btn:hover {
+            background-color: #e04e4e;
+            transform: scale(1.05);
+        }
+
+        .logout-btn:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(255, 92, 92, 0.8);
+        }
+        .invite-container {
+            margin-top: 20px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .invite-button-container {
+            display: flex;
+            justify-content: space-between;
+            width: 40%;
+        }
+
+        .invite-container input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 60%;
+        }
+
+        .invite-btn {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
+        .invite-btn:hover {
+            background-color: #45a049;
+        }
+
+        .leave-btn {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
+        .leave-btn:hover {
+            background-color: #e53935;
+        }
+
+        .button-container {
+            margin-top: 20px;
+        }
+
+        .button-container button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .button-container button:hover {
+            background-color: #4CAF50;
+            transform: scale(1.05);
+        }
+
+        .button-container button:focus {
+            outline: none;
+            box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.8);
+        }
+
+        .create-chat-container {
+            margin-top: 20px;
+        }
+
+        .create-chat-container input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 60%;
+        }
+
+        .create-chat-container button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            border: none;
+            margin-left: 10px;
+        }
+
+        .create-chat-container button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-list">
+            <button class="logout-btn" onclick="logout()">Logout</button>
+            <div class="button-container">
+                <button onclick="goToPage('http://' + path + 'profile')">Profile</button>
+                <button onclick="goToPage('http://' + path + 'management')">Management</button>
+            </div>
+            <div class="create-chat-container">
+                <h3>Create New Chat</h3>
+                <input type="text" id="new-chat-name" placeholder="Enter chat name" />
+                <button onclick="createChat()">Create Chat</button>
+            </div>
+            <h3>Chats</h3>
+            <div id="chat-list">
+            </div>
+        </div>
+
+        <div class="messages-container">
+            <div class="invite-container">
+                <input type="text" id="friend-nickname" class="message-input" placeholder="Enter friend's nickname">
+                
+                <div class="invite-button-container">
+                    <button class="invite-btn" onclick="inviteFriend()">Invite Friend</button>
+                    <button class="leave-btn" onclick="leaveChat()">Leave Chat</button>
+                </div>
+            </div>
+            <h3 id="chat-title">Select a chat</h3>
+            <div id="messages" class="messages">
+            </div>
+            <input type="text" id="message-input" class="message-input" placeholder="Type a message..." disabled>
+        </div>
+    </div>
+
+    <script>
+        const path = "{{.Path}}/client/";
+
+        async function createChat() {
+            const chatName = document.getElementById("new-chat-name").value.trim();
+            if (!chatName) {
+                alert("Please enter a chat name!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://" + path + "chat/create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ name: chatName }),
+                });
+
+                if (response.ok) {
+                    alert("Chat created successfully!");
+                    document.getElementById("new-chat-name").value = "";
+                    location.reload()
+                } else {
+                    const errorData = await response.json();
+                    console.error("Error:", errorData.error);
+                    alert("Error: " + errorData.error);
+                }
+            } catch (error) {
+                console.error("Error during chat creation:", error);
+                alert("Something went wrong!");
+            }
+        }
+
+        function goToPage(url) {
+            window.location.href = url;
+        }
+        
+        async function inviteFriend() {
+            const nickname = document.getElementById("friend-nickname").value.trim();
+            if (!nickname) {
+                alert("Please enter a nickname!");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://" + path + `chat/${currentChatId}/invite`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ nickname }),
+                });
+
+                if (response.ok) {
+                    console.log("Friend invited successfully");
+                    alert("Friend invited successfully!");
+                    document.getElementById("friend-nickname").value = "";
+                } else {
+                    const errorData = await response.json();
+                    console.error("Error:", errorData.error);
+                    alert("Error: " + errorData.error);
+                }
+            } catch (error) {
+                console.error("Error during invite:", error);
+                alert("Something went wrong!");
+            }
+        }
+
+        async function leaveChat() {
+            try {
+                const response = await fetch("http://" + path + `chat/${currentChatId}/leave`, {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                console.log(response.ok);
+                if (response.ok) {
+                    console.log("success leaving");
+                    
+                    window.location.href = "http://" + path + "chat";
+                } else {
+                    console.error("Error during leaving:", error);
+                }
+            } catch (error) {
+                console.error("Error during leaving:", error);
+            }
+        }
+
+        async function logout() {
+            try {
+                const response = await fetch("http://" + path + "logout", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+
+                console.log(response.ok);
+                if (response.ok) {
+                    console.log("success logout");
+                    
+                    window.location.href = "http://" + path + "login";
+                } else {
+                    console.error("Error during logout:", error);
+                }
+            } catch (error) {
+                console.error("Error during logout:", error);
+            }
+        }
+
+        let ws = null;
+        let currentChatId = null;
+
+        function connectWebSocket(chatId) {
+            const inviteContainer = document.querySelector('.invite-container');
+            if (inviteContainer) {
+                inviteContainer.style.display = 'flex';
+            }
+            if (ws) {
+                ws.close();
+            }
+
+            ws = new WebSocket("ws://" + path + `chat/${chatId}`);
+
+            ws.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                displayMessage(data);
+            };
+
+            ws.onopen = function () {
+                console.log(`Connected to chat ${chatId}`);
+                document.getElementById("message-input").disabled = false;
+            };
+
+            ws.onclose = function () {
+                console.log(`Disconnected from chat ${chatId}`);
+            };
+        }
+
+        function sendMessage() {
+            const message = document.getElementById("message-input").value;
+            if (message && ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(message)
+                document.getElementById("message-input").value = "";
+            }
+        }
+
+        function displayMessage(data) {
+            const messagesContainer = document.getElementById("messages");
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("message");
+            messageElement.classList.add(data.type ? "sent" : "received");
+            messageElement.innerHTML = `<strong>${data.sender_nickname}:</strong> ${data.msg_text}`;
+            messagesContainer.appendChild(messageElement);
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function loadChats() {
+            const chats = [
+                {{range .Chats}}
+                    { id: {{.Id}}, name: {{.Name}} },
+                {{end}}
+            ];
+
+            const chatListContainer = document.getElementById("chat-list");
+            chats.forEach(chat => {
+                const chatItem = document.createElement("div");
+                chatItem.classList.add("chat-item");
+                chatItem.textContent = chat.name;
+                chatItem.onclick = function () {
+                    currentChatId = chat.id;
+                    document.getElementById("chat-title").textContent = `Chat: ${chat.name}`;
+                    document.getElementById("messages").innerHTML = "";
+                    connectWebSocket(chat.id);
+                };
+                chatListContainer.appendChild(chatItem);
+            });
+        }
+
+        loadChats();
+
+        document.getElementById("message-input").addEventListener("keydown", function (event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
